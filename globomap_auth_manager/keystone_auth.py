@@ -20,7 +20,7 @@ from keystoneauth1.exceptions.http import NotFound
 from keystoneauth1.exceptions.http import Unauthorized
 from keystoneclient.v2_0 import client
 
-from globomap_auth_manager.keystone import exceptions
+from globomap_auth_manager import exceptions
 # from keystoneauth1 import session
 # from keystoneauth1.identity import v2
 
