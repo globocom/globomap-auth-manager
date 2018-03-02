@@ -24,7 +24,7 @@ class RedisClient(object):
 
     logger = logging.getLogger(__name__)
 
-    def __ini__(self):
+    def __init__(self):
         self.sentinel_endpoint_simple = None
 
     def set_config_sentinel(self, sentinel_endpoint_simple, sentinels_port,
@@ -77,3 +77,16 @@ class RedisClient(object):
             connection = None
 
         return connection
+
+    def is_redis_ok(self):
+        try:
+            conn = self.get_redis_conn()
+        except:
+            self.logger.error('Failed to healthcheck redis.')
+            return False
+        else:
+            if not conn or not conn.ping():
+                self.logger.error('Failed to healthcheck redis.')
+                return False
+            else:
+                return True
