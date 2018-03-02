@@ -21,7 +21,7 @@ from datetime import datetime
 from globomap_auth_manager.exceptions import AuthException
 from globomap_auth_manager.exceptions import InvalidToken
 from globomap_auth_manager.keystone_auth import KeystoneAuth
-from globomap_auth_manager.redis import RedisClient
+from globomap_auth_manager.redis_client import RedisClient
 
 
 class Auth(object):
