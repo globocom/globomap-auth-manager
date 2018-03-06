@@ -73,6 +73,7 @@ class KeystoneAuth(object):
             raise exceptions.Unauthorized('Unauthorized')
 
     def validate_token(self, token):
+
         try:
             return self.conn.tokens.validate(token=token)
         except NotFound:
