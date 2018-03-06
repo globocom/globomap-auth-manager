@@ -26,7 +26,6 @@ setup(
     install_requires=[
         'requests==2.18.4',
         'python-keystoneclient==3.15.0',
-        'redis==2.10.6',
     ],
     url='https://github.com/globocom/globomap-auth-manager',
     packages=['globomap_auth_manager'],
