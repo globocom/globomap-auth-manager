@@ -14,14 +14,14 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 """
-import json
 import logging
-from datetime import datetime
 
-from globomap_auth_manager.exceptions import AuthException
 from globomap_auth_manager.exceptions import InvalidToken
 from globomap_auth_manager.keystone_auth import KeystoneAuth
-from globomap_auth_manager.redis_client import RedisClient
+from globomap_auth_manager.settings import KEYSTONE_AUTH_URL
+from globomap_auth_manager.settings import KEYSTONE_PASSWORD
+from globomap_auth_manager.settings import KEYSTONE_TENANT_NAME
+from globomap_auth_manager.settings import KEYSTONE_USERNAME
 
 
 class Auth(object):
@@ -29,43 +29,10 @@ class Auth(object):
     logger = logging.getLogger(__name__)
 
     def __init__(self):
-        self.redis = None
         self.token = None
-        self.conn = None
 
-    def set_config_keystone(self, auth_url=None, tenant_name=None, username=None, password=None):
-        """ Set config to Keystone """
-
-        self.keystone_auth = KeystoneAuth(
-            auth_url, tenant_name, username, password)
-        return self.keystone_auth
-
-    def set_config_sentinel(self, sentinel_endpoint_simple, sentinels_port,
-                            sentinels, sentinel_service_name,
-                            sentinel_password):
-        """ Set config to Redis sentinel  """
-
-        self.redis = RedisClient()
-        self.redis.set_config_sentinel(sentinel_endpoint_simple, sentinels_port,
-                                       sentinels, sentinel_service_name,
-                                       sentinel_password)
-
-    def start_redis_conn(self):
-        self.conn = self.redis.get_redis_conn()
-
-    def set_config(self, host, port, password):
-        """ Set config to Redis """
-
-        self.redis = RedisClient()
-        self.redis.set_config(host, port, password)
-
-    def get_token_data(self):
-        """ Get token and data from keystone """
-
-        token_data = self.keystone_auth.conn.auth_ref
-        self._set_cache_token(token_data)
-
-        return token_data['token']
+    def set_credentials(self, username=None, password=None):
+        self._set_config_keystone(username, password)
 
     def set_token(self, value):
         """ Set Token in instance """
@@ -76,53 +43,31 @@ class Auth(object):
             token = value
         self.token = token
 
+    def _set_config_keystone(self, username, password):
+        """ Set config to Keystone """
+
+        self._keystone_auth = KeystoneAuth(
+            KEYSTONE_AUTH_URL, KEYSTONE_TENANT_NAME, username, password)
+        return self._keystone_auth
+
+    def get_token_data(self):
+        """ Get token and data from keystone """
+
+        token_data = self._keystone_auth.conn.auth_ref
+        return token_data['token']
+
     def validate_token(self):
         """ Validate Token """
 
-        self._is_redis_configured()
-
+        self._set_config_keystone(KEYSTONE_USERNAME, KEYSTONE_PASSWORD)
         if self.token is not None:
-            token_data = self._get_cache_token()
+            token_data = self._keystone_auth.validate_token(self.token)
             if not token_data:
                 self.logger.error('Invalid Token %s' % self.token)
                 raise InvalidToken('Invalid Token')
+            token_data = token_data.to_dict()
         else:
             self.logger.error('Invalid Token')
             raise InvalidToken('Invalid Token')
 
         return token_data
-
-    def _get_cache_token(self):
-        """ Get token and data from Redis """
-
-        self._is_redis_configured()
-
-        if not self.conn:
-            raise AuthException('Redis is not connected')
-
-        token_data = self.conn.get(self.token)
-        token_data = json.loads(token_data) if token_data else None
-
-        return token_data
-
-    def _set_cache_token(self, token_data):
-        """ Set Token with data in Redis """
-
-        if not self.conn:
-            raise AuthException('Redis is not connected')
-
-        token = token_data['token']['id']
-        self.set_token(token)
-
-        token_expires = token_data['token']['expires']
-        datetime_object = datetime.strptime(
-            token_expires, '%Y-%m-%dT%H:%M:%SZ')
-        ttl = (datetime.utcnow().now() - datetime_object)
-        token_data = json.dumps(token_data)
-
-        self.conn.set(token, token_data, ex=ttl.seconds)
-
-    def _is_redis_configured(self):
-        if self.redis is None:
-            raise AuthException('Redis is not configured')
-        return True
