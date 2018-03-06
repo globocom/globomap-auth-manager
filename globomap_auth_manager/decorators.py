@@ -14,4 +14,15 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 """
-__version__ = '0.0.7'
+from globomap_auth_manager.exceptions import AuthException
+from globomap_auth_manager.settings import KEYSTONE_AUTH_ENABLE
+
+
+def is_enable(func):
+
+    def func_wrapper(*args, **kwargs):
+        if KEYSTONE_AUTH_ENABLE != '1':
+            raise AuthException('Auth is not enabled')
+        return func(*args, **kwargs)
+
+    return func_wrapper
