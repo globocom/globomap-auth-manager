@@ -38,3 +38,11 @@ class InvalidToken(Exception):
         super(InvalidToken, self).__init__(message)
 
         self.message = message
+
+
+class CacheException(Exception):
+
+    def __init__(self, message):
+        super(CacheException, self).__init__(message)
+
+        self.message = message
