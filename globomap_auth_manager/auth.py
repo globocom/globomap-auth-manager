@@ -19,13 +19,16 @@ import logging
 import requests
 
 from globomap_auth_manager import decorators
+from globomap_auth_manager.exceptions import CacheException
 from globomap_auth_manager.exceptions import InvalidToken
 from globomap_auth_manager.keystone_auth import KeystoneAuth
+from globomap_auth_manager.redis_client import RedisClient
 from globomap_auth_manager.settings import KEYSTONE_AUTH_ENABLE
 from globomap_auth_manager.settings import KEYSTONE_AUTH_URL
 from globomap_auth_manager.settings import KEYSTONE_PASSWORD
 from globomap_auth_manager.settings import KEYSTONE_TENANT_NAME
 from globomap_auth_manager.settings import KEYSTONE_USERNAME
+from globomap_auth_manager.settings import USE_REDIS
 
 
 class Auth(object):
@@ -34,6 +37,7 @@ class Auth(object):
 
     def __init__(self):
         self.token = None
+        self.cache = None
 
     def is_enable(self):
         return True if KEYSTONE_AUTH_ENABLE == '1' else False
@@ -74,25 +78,45 @@ class Auth(object):
         """ Get token and data from keystone """
 
         token_data = self._keystone_auth.conn.auth_ref
+        if self.cache:
+            try:
+                self.cache.set_cache_token(token_data)
+            except CacheException:
+                self.logger.error('Token not setted in cache.')
+
         return token_data['token']
 
     @decorators.is_enable
     def validate_token(self):
         """ Validate Token """
 
-        self._set_config_keystone(KEYSTONE_USERNAME, KEYSTONE_PASSWORD)
-        if self.token is not None:
-            token_data = self._keystone_auth.validate_token(self.token)
-            if not token_data:
-                self.logger.error('Invalid Token %s' % self.token)
-                raise InvalidToken('Invalid Token')
-            token_data = token_data.to_dict()
-        else:
-            self.logger.error('Invalid Token')
-            raise InvalidToken('Invalid Token')
+        if self.cache:
+            try:
+                token_data = self.cache.get_cache_token(self.token)
+            except CacheException:
+                self.logger.error('Token not getted from cache.')
+                token_data = None
+            else:
+                if not token_data:
+                    self.token_data = token_data
+                    return
 
-        self.token_data = token_data
+        if (self.cache and token_data is None) or not self.cache:
+            self._set_config_keystone(KEYSTONE_USERNAME, KEYSTONE_PASSWORD)
+            if self.token is not None:
+                token_data = self._keystone_auth.validate_token(self.token)
+                if token_data:
+                    token_data = token_data.to_dict()
+                    self.token_data = token_data
+                    return
+
+        self.logger.error('Invalid Token')
+        raise InvalidToken('Invalid Token')
 
     @decorators.is_enable
     def get_token_data_details(self):
         return self.token_data
+
+    def configure_cache(self):
+        if USE_REDIS:
+            self.cache = RedisClient()
