@@ -98,7 +98,6 @@ class RedisClient(object):
             raise CacheException('Redis is not connected')
 
         token = token_data['token']['id']
-        self.set_token(token)
 
         token_expires = token_data['token']['expires']
         datetime_object = datetime.strptime(

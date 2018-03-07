@@ -38,6 +38,7 @@ class Auth(object):
     def __init__(self):
         self.token = None
         self.cache = None
+        self.configure_cache()
 
     def is_enable(self):
         return True if KEYSTONE_AUTH_ENABLE == '1' else False
@@ -78,6 +79,9 @@ class Auth(object):
         """ Get token and data from keystone """
 
         token_data = self._keystone_auth.conn.auth_ref
+        token = token_data['token']['id']
+        self.set_token(token)
+
         if self.cache:
             try:
                 self.cache.set_cache_token(token_data)
@@ -97,11 +101,11 @@ class Auth(object):
                 self.logger.error('Token not getted from cache.')
                 token_data = None
             else:
-                if not token_data:
+                if token_data:
                     self.token_data = token_data
                     return
 
-        if (self.cache and token_data is None) or not self.cache:
+        if token_data is None:
             self._set_config_keystone(KEYSTONE_USERNAME, KEYSTONE_PASSWORD)
             if self.token is not None:
                 token_data = self._keystone_auth.validate_token(self.token)
