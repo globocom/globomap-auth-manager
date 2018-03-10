@@ -100,8 +100,13 @@ class RedisClient(object):
         token = token_data['token']['id']
 
         token_expires = token_data['token']['expires']
-        datetime_object = datetime.strptime(
-            token_expires, '%Y-%m-%dT%H:%M:%S.%fZ')
+        try:
+            datetime_object = datetime.strptime(
+                token_expires, '%Y-%m-%dT%H:%M:%S.%fZ')
+        except ValueError:
+            datetime_object = datetime.strptime(
+                token_expires, '%Y-%m-%dT%H:%M:%SZ')
+
         ttl = (datetime.utcnow().now() - datetime_object)
         token_data = json.dumps(token_data)
 

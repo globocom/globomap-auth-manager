@@ -1,7 +1,7 @@
 .PHONY: help setup clean pep8 tests run
 
 # Version package
-VERSION=$(shell python -c 'import globomap_auth_manager; print globomap_auth_manager.__version__')
+VERSION=$(shell python -c 'import globomap_auth_manager; print(globomap_auth_manager.__version__)')
 
 PROJECT_HOME = "`pwd`"
 
