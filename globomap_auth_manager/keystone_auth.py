@@ -17,56 +17,71 @@ import logging
 
 from keystoneauth1.exceptions.http import NotFound
 from keystoneauth1.exceptions.http import Unauthorized
-from keystoneclient.v2_0 import client
+from keystoneclient.v2_0 import client as client_v2
+from keystoneclient.v3 import client as client_v3
 
 from globomap_auth_manager import exceptions
-# from keystoneauth1 import session
-# from keystoneauth1.identity import v2
 
 
 class KeystoneAuth(object):
 
     logger = logging.getLogger(__name__)
 
-    def __init__(self, auth_url=None, tenant_name=None, username=None, password=None):
+    def __init__(self, auth_url=None, tenant_name=None, username=None,
+                 password=None, user_domain_name=None,
+                 project_domain_name=None):
 
         if tenant_name is None:
-            msg = 'Auth not working. KEYSTONE_TENANT_NAME is not set'
+            msg = 'Auth not working. KEYSTONE_TENANT_NAME is not setted.'
             self.logger.exception(msg)
             raise exceptions.AuthException(msg)
 
         if username is None:
-            msg = 'Auth not working. Username is not set'
+            msg = 'Auth not working. Username is not setted.'
             self.logger.exception(msg)
             raise exceptions.AuthException(msg)
 
         if password is None:
-            msg = 'Auth not working. Password is not set'
+            msg = 'Auth not working. Password is not setted.'
             self.logger.exception(msg)
             raise exceptions.AuthException(msg)
 
         if auth_url is None:
-            msg = 'Auth not working. KEYSTONE_AUTH_URL is not set'
+            msg = 'Auth not working. KEYSTONE_AUTH_URL is not setted.'
+            self.logger.exception(msg)
+            raise exceptions.AuthException(msg)
+
+        if user_domain_name is None and 'v3' in auth_url:
+            msg = 'Auth not working. KEYSTONE_USER_DOMAIN_NAME is not setted.'
+            self.logger.exception(msg)
+            raise exceptions.AuthException(msg)
+
+        if project_domain_name is None and 'v3' in auth_url:
+            msg = 'Auth not working. KEYSTONE_PROJECT_DOMAIN_NAME is not setted.'
             self.logger.exception(msg)
             raise exceptions.AuthException(msg)
 
         try:
-            self.conn = client.Client(
-                insecure=True,
-                username=username,
-                password=password,
-                tenant_name=tenant_name,
-                auth_url=auth_url,
-                timeout=3
-            )
-            # auth = v2.Password(
-            #     username=username,
-            #     password=password,
-            #     tenant_name=tenant_name,
-            #     auth_url=auth_url
-            # )
-            # sess = session.Session(auth=auth)
-            # self.conn = client.Client(session=sess)
+            if 'v2.0' in auth_url:
+                self.conn = client_v2.Client(
+                    insecure=True,
+                    username=username,
+                    password=password,
+                    tenant_name=tenant_name,
+                    auth_url=auth_url,
+                    timeout=3
+                )
+            else:
+                self.conn = client_v3.Client(
+                    insecure=True,
+                    username=username,
+                    password=password,
+                    project_name=tenant_name,
+                    auth_url=auth_url,
+                    user_domain_name=user_domain_name,
+                    project_domain_name=project_domain_name,
+                    timeout=3
+                )
 
         except Unauthorized:
             raise exceptions.Unauthorized('Unauthorized')
