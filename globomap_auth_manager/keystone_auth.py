@@ -17,8 +17,7 @@ import logging
 
 from keystoneauth1.exceptions.http import NotFound
 from keystoneauth1.exceptions.http import Unauthorized
-from keystoneclient.v2_0 import client as client_v2
-from keystoneclient.v3 import client as client_v3
+from keystoneclient.v3 import client as client
 
 from globomap_auth_manager import exceptions
 
@@ -51,37 +50,27 @@ class KeystoneAuth(object):
             self.logger.exception(msg)
             raise exceptions.AuthException(msg)
 
-        if user_domain_name is None and 'v3' in auth_url:
+        if user_domain_name is None:
             msg = 'Auth not working. KEYSTONE_USER_DOMAIN_NAME is not setted.'
             self.logger.exception(msg)
             raise exceptions.AuthException(msg)
 
-        if project_domain_name is None and 'v3' in auth_url:
+        if project_domain_name is None:
             msg = 'Auth not working. KEYSTONE_PROJECT_DOMAIN_NAME is not setted.'
             self.logger.exception(msg)
             raise exceptions.AuthException(msg)
 
         try:
-            if 'v2.0' in auth_url:
-                self.conn = client_v2.Client(
-                    insecure=True,
-                    username=username,
-                    password=password,
-                    tenant_name=tenant_name,
-                    auth_url=auth_url,
-                    timeout=3
-                )
-            else:
-                self.conn = client_v3.Client(
-                    insecure=True,
-                    username=username,
-                    password=password,
-                    project_name=tenant_name,
-                    auth_url=auth_url,
-                    user_domain_name=user_domain_name,
-                    project_domain_name=project_domain_name,
-                    timeout=3
-                )
+            self.conn = client.Client(
+                insecure=True,
+                username=username,
+                password=password,
+                project_name=tenant_name,
+                auth_url=auth_url,
+                user_domain_name=user_domain_name,
+                project_domain_name=project_domain_name,
+                timeout=3
+            )
 
         except Unauthorized:
             raise exceptions.Unauthorized('Unauthorized')

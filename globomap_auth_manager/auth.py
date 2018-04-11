@@ -17,15 +17,15 @@ import logging
 
 import requests
 
-from globomap_auth_manager import decorators
 from globomap_auth_manager.exceptions import CacheException
 from globomap_auth_manager.exceptions import InvalidToken
 from globomap_auth_manager.keystone_auth import KeystoneAuth
 from globomap_auth_manager.redis_client import RedisClient
-from globomap_auth_manager.settings import KEYSTONE_AUTH_ENABLE
 from globomap_auth_manager.settings import KEYSTONE_AUTH_URL
 from globomap_auth_manager.settings import KEYSTONE_PASSWORD
+from globomap_auth_manager.settings import KEYSTONE_PROJECT_DOMAIN_NAME
 from globomap_auth_manager.settings import KEYSTONE_TENANT_NAME
+from globomap_auth_manager.settings import KEYSTONE_USER_DOMAIN_NAME
 from globomap_auth_manager.settings import KEYSTONE_USERNAME
 from globomap_auth_manager.settings import USE_REDIS
 
@@ -39,24 +39,19 @@ class Auth(object):
         self.cache = None
         self.configure_cache()
 
-    def is_enable(self):
-        return True if KEYSTONE_AUTH_ENABLE == '1' else False
-
     def is_url_ok(self):
         """ Verify Keystone Auth URL"""
 
         response = requests.head(KEYSTONE_AUTH_URL)
-        if response.ret_code == 200:
+        if response.status_code == 200:
             return True
         return False
 
-    @decorators.is_enable
     def set_credentials(self, username=None, password=None):
         """ Set credentials"""
 
         self._set_config_keystone(username, password)
 
-    @decorators.is_enable
     def set_token(self, value):
         """ Set Token"""
 
@@ -70,15 +65,15 @@ class Auth(object):
         """ Set config to Keystone """
 
         self._keystone_auth = KeystoneAuth(
-            KEYSTONE_AUTH_URL, KEYSTONE_TENANT_NAME, username, password)
+            KEYSTONE_AUTH_URL, KEYSTONE_TENANT_NAME, username, password,
+            KEYSTONE_USER_DOMAIN_NAME, KEYSTONE_PROJECT_DOMAIN_NAME)
         return self._keystone_auth
 
-    @decorators.is_enable
     def get_token_data(self):
         """ Get token and data from keystone """
 
         token_data = self._keystone_auth.conn.auth_ref
-        token = token_data['token']['id']
+        token = token_data['auth_token']
         self.set_token(token)
 
         if self.cache:
@@ -87,9 +82,13 @@ class Auth(object):
             except CacheException:
                 self.logger.error('Token not setted in cache.')
 
-        return token_data['token']
+        token_data = {
+            'expires_at': token_data['expires_at'],
+            'token': token
+        }
 
-    @decorators.is_enable
+        return token_data
+
     def validate_token(self):
         """ Validate Token """
 
@@ -103,8 +102,7 @@ class Auth(object):
                 if token_data:
                     self.token_data = token_data
                     return
-
-        if token_data is None:
+        else:
             self._set_config_keystone(KEYSTONE_USERNAME, KEYSTONE_PASSWORD)
             if self.token is not None:
                 token_data = self._keystone_auth.validate_token(self.token)
@@ -116,7 +114,6 @@ class Auth(object):
         self.logger.error('Invalid Token')
         raise InvalidToken('Invalid Token')
 
-    @decorators.is_enable
     def get_token_data_details(self):
         return self.token_data
 
