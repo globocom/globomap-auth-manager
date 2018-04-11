@@ -15,15 +15,8 @@ clean: ## Clear *.pyc files, etc
 	@rm -rf build dist *.egg-info
 	@find . \( -name '*.pyc' -o  -name '__pycache__' -o -name '**/*.pyc' -o -name '*~' \) -delete
 
-pep8: ## Check source-code for PEP8 compliance
-	@-pep8 globomap_auth_manager
-
-exec_tests: clean pep8 ## Run all tests with coverage
-	@python3.6 -m unittest discover -s tests/
-	#@run --source=globomap_auth_manager -m unittest2 discover -s tests/; coverage report -m
-
-tests:
-	@docker exec -it globomap_auth_manager make exec_tests
+tests: clean ## Make tests
+	@nosetests --verbose --rednose  --nocapture --cover-package=globomap_auth_manager --with-coverage; coverage report -m
 
 dist: clean
 	@python setup.py sdist

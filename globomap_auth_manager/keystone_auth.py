@@ -17,7 +17,7 @@ import logging
 
 from keystoneauth1.exceptions.http import NotFound
 from keystoneauth1.exceptions.http import Unauthorized
-from keystoneclient.v3 import client as client
+from keystoneclient.v3 import client
 
 from globomap_auth_manager import exceptions
 
@@ -26,12 +26,17 @@ class KeystoneAuth(object):
 
     logger = logging.getLogger(__name__)
 
-    def __init__(self, auth_url=None, tenant_name=None, username=None,
+    def __init__(self, auth_url=None, project_name=None, username=None,
                  password=None, user_domain_name=None,
                  project_domain_name=None):
 
-        if tenant_name is None:
-            msg = 'Auth not working. KEYSTONE_TENANT_NAME is not setted.'
+        if auth_url is None:
+            msg = 'Auth not working. KEYSTONE_AUTH_URL is not setted.'
+            self.logger.exception(msg)
+            raise exceptions.AuthException(msg)
+
+        if project_name is None:
+            msg = 'Auth not working. KEYSTONE_PROJECT_NAME is not setted.'
             self.logger.exception(msg)
             raise exceptions.AuthException(msg)
 
@@ -42,11 +47,6 @@ class KeystoneAuth(object):
 
         if password is None:
             msg = 'Auth not working. Password is not setted.'
-            self.logger.exception(msg)
-            raise exceptions.AuthException(msg)
-
-        if auth_url is None:
-            msg = 'Auth not working. KEYSTONE_AUTH_URL is not setted.'
             self.logger.exception(msg)
             raise exceptions.AuthException(msg)
 
@@ -65,7 +65,7 @@ class KeystoneAuth(object):
                 insecure=True,
                 username=username,
                 password=password,
-                project_name=tenant_name,
+                project_name=project_name,
                 auth_url=auth_url,
                 user_domain_name=user_domain_name,
                 project_domain_name=project_domain_name,
@@ -82,5 +82,6 @@ class KeystoneAuth(object):
         except NotFound:
             self.logger.error('Cannot validate token %s' % token)
             raise exceptions.InvalidToken('Invalid Token')
-        except:
+        except Exception:
+            self.logger.exception('Error to validate token')
             raise exceptions.AuthException('Error to validate token')

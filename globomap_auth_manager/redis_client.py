@@ -73,7 +73,7 @@ class RedisClient(object):
                 port=self.port,
                 password=self.password
             )
-        except:
+        except Exception:
             self.logger.exception('Failed to connect to Redis')
             connection = None
 
