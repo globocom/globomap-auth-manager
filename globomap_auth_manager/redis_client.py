@@ -96,9 +96,10 @@ class RedisClient(object):
         if not self.conn:
             raise CacheException('Redis is not connected')
 
-        token = token_data['token']['id']
+        token = token_data['auth_token']
+        token_expires = token_data['expires_at']
+        roles = token_data['roles']
 
-        token_expires = token_data['token']['expires']
         try:
             datetime_object = datetime.strptime(
                 token_expires, '%Y-%m-%dT%H:%M:%S.%fZ')
@@ -107,7 +108,10 @@ class RedisClient(object):
                 token_expires, '%Y-%m-%dT%H:%M:%SZ')
 
         ttl = (datetime.utcnow().now() - datetime_object)
-        token_data = json.dumps(token_data)
+        token_data = json.dumps({
+            'expires_at': token_expires,
+            'roles': roles
+        })
 
         self.conn.set(token, token_data, ex=ttl.seconds)
 
