@@ -40,7 +40,7 @@ class Auth(object):
         self.configure_cache()
 
     def is_url_ok(self):
-        """ Verify Keystone Auth URL"""
+        """ Verify Keystone Auth URL """
 
         response = requests.head(KEYSTONE_AUTH_URL)
         if response.status_code == 200:
@@ -48,12 +48,12 @@ class Auth(object):
         return False
 
     def set_credentials(self, username=None, password=None):
-        """ Set credentials"""
+        """ Set credentials """
 
         self._set_config_keystone(username, password)
 
     def set_token(self, value):
-        """ Set Token"""
+        """ Set Token """
 
         if value.find('Token token=') == 0:
             token = value[12:]
