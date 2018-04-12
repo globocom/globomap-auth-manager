@@ -82,7 +82,7 @@ class RedisClient(object):
     def get_cache_token(self, token):
         """ Get token and data from Redis """
 
-        if not self.conn:
+        if self.conn is None:
             raise CacheException('Redis is not connected')
 
         token_data = self.conn.get(token)
@@ -93,7 +93,7 @@ class RedisClient(object):
     def set_cache_token(self, token_data):
         """ Set Token with data in Redis """
 
-        if not self.conn:
+        if self.conn is None:
             raise CacheException('Redis is not connected')
 
         token = token_data['auth_token']
@@ -116,7 +116,7 @@ class RedisClient(object):
         self.conn.set(token, token_data, ex=ttl.seconds)
 
     def is_redis_ok(self):
-        if not self.conn or not self.conn.ping():
+        if self.conn is not None or not self.conn.ping():
             self.logger.error('Failed to healthcheck redis.')
             return False
         else:

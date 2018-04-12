@@ -17,17 +17,11 @@ import logging
 
 import requests
 
+from globomap_auth_manager import settings
 from globomap_auth_manager.exceptions import CacheException
 from globomap_auth_manager.exceptions import InvalidToken
 from globomap_auth_manager.keystone_auth import KeystoneAuth
 from globomap_auth_manager.redis_client import RedisClient
-from globomap_auth_manager.settings import KEYSTONE_AUTH_URL
-from globomap_auth_manager.settings import KEYSTONE_PASSWORD
-from globomap_auth_manager.settings import KEYSTONE_PROJECT_DOMAIN_NAME
-from globomap_auth_manager.settings import KEYSTONE_TENANT_NAME
-from globomap_auth_manager.settings import KEYSTONE_USER_DOMAIN_NAME
-from globomap_auth_manager.settings import KEYSTONE_USERNAME
-from globomap_auth_manager.settings import USE_REDIS
 
 
 class Auth(object):
@@ -42,7 +36,7 @@ class Auth(object):
     def is_url_ok(self):
         """ Verify Keystone Auth URL """
 
-        response = requests.head(KEYSTONE_AUTH_URL)
+        response = requests.head(settings.KEYSTONE_AUTH_URL)
         if response.status_code == 200:
             return True
         return False
@@ -65,9 +59,8 @@ class Auth(object):
         """ Set config to Keystone """
 
         self._keystone_auth = KeystoneAuth(
-            KEYSTONE_AUTH_URL, KEYSTONE_TENANT_NAME, username, password,
-            KEYSTONE_USER_DOMAIN_NAME, KEYSTONE_PROJECT_DOMAIN_NAME)
-        return self._keystone_auth
+            settings.KEYSTONE_AUTH_URL, settings.KEYSTONE_PROJECT_NAME, username, password,
+            settings.KEYSTONE_USER_DOMAIN_NAME, settings.KEYSTONE_PROJECT_DOMAIN_NAME)
 
     def get_token_data(self):
         """ Get token and data from keystone """
@@ -103,11 +96,11 @@ class Auth(object):
                     self.token_data = token_data
                     return
         else:
-            self._set_config_keystone(KEYSTONE_USERNAME, KEYSTONE_PASSWORD)
+            self._set_config_keystone(
+                settings.KEYSTONE_USERNAME, settings.KEYSTONE_PASSWORD)
             if self.token is not None:
                 token_data = self._keystone_auth.validate_token(self.token)
                 if token_data:
-                    token_data = token_data.to_dict()
                     self.token_data = token_data
                     return
 
@@ -118,5 +111,5 @@ class Auth(object):
         return self.token_data
 
     def configure_cache(self):
-        if USE_REDIS:
+        if settings.USE_REDIS == '1':
             self.cache = RedisClient()
