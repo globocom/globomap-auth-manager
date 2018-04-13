@@ -1,6 +1,6 @@
 # GloboMap Auth Manager
 
-Application responsible for reading and writing in ARANGODB. This application has a RESTFul API.
+Python client for GloboMap Auth
 
 ## Starting Project:
 
