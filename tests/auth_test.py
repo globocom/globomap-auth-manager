@@ -37,7 +37,6 @@ class AuthTest(unittest2.TestCase):
         mock_settings.KEYSTONE_PASSWORD = 'password'
         mock_settings.KEYSTONE_PROJECT_NAME = 'project_name'
         mock_settings.KEYSTONE_AUTH_URL = 'auth_url'
-        mock_settings.KEYSTONE_AUTH_ENABLE = 'auth_enable'
         mock_settings.KEYSTONE_USER_DOMAIN_NAME = 'user_domain_name'
         mock_settings.KEYSTONE_PROJECT_DOMAIN_NAME = 'project_domain_name'
         Auth().set_credentials('user', 'pass')

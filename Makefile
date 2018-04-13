@@ -6,6 +6,10 @@ VERSION=$(shell python -c 'import globomap_auth_manager; print(globomap_auth_man
 PROJECT_HOME = "`pwd`"
 
 help:
+	@echo
+	@echo "Please use 'make <target>' where <target> is one of"
+	@echo
+
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 setup: ## Install project dependencies
@@ -18,10 +22,10 @@ clean: ## Clear *.pyc files, etc
 tests: clean ## Make tests
 	@nosetests --verbose --rednose  --nocapture --cover-package=globomap_auth_manager --with-coverage; coverage report -m
 
-dist: clean
+dist: clean ## Make dist
 	@python setup.py sdist
 
-publish: clean dist
+publish: clean dist ## Make publish
 	@echo 'Ready to release version ${VERSION}? (ctrl+c to abort)' && read
 	twine upload dist/*
 	@git tag ${VERSION}
