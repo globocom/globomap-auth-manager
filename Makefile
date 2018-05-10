@@ -22,6 +22,9 @@ clean: ## Clear *.pyc files, etc
 tests: clean ## Make tests
 	@nosetests --verbose --rednose  --nocapture --cover-package=globomap_auth_manager --with-coverage; coverage report -m
 
+tests_ci: clean ## Make tests to CI
+	@nosetests --verbose --rednose  --nocapture --cover-package=globomap_auth_manager
+
 dist: clean ## Make dist
 	@python setup.py sdist
 
