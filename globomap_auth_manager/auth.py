@@ -49,7 +49,7 @@ class Auth(object):
     def set_token(self, value):
         """ Set Token """
 
-        if value.find('Token token=') == 0:
+        if value and value.find('Token token=') == 0:
             token = value[12:]
         else:
             token = value
@@ -84,6 +84,10 @@ class Auth(object):
 
     def validate_token(self):
         """ Validate Token """
+
+        if not self.token:
+            self.logger.error('Missing Token')
+            raise InvalidToken('Missing Token')
 
         if self.cache:
             try:
