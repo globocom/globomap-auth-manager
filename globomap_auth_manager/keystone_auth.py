@@ -28,7 +28,7 @@ class KeystoneAuth(object):
 
     def __init__(self, auth_url=None, project_name=None, username=None,
                  password=None, user_domain_name=None,
-                 project_domain_name=None):
+                 project_domain_name=None, timeout=3):
 
         if auth_url is None:
             msg = 'Auth not working. KEYSTONE_AUTH_URL is not setted.'
@@ -69,7 +69,7 @@ class KeystoneAuth(object):
                 auth_url=auth_url,
                 user_domain_name=user_domain_name,
                 project_domain_name=project_domain_name,
-                timeout=3
+                timeout=timeout
             )
 
         except Unauthorized:

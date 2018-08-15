@@ -60,7 +60,8 @@ class Auth(object):
 
         self._keystone_auth = KeystoneAuth(
             settings.KEYSTONE_AUTH_URL, settings.KEYSTONE_PROJECT_NAME, username, password,
-            settings.KEYSTONE_USER_DOMAIN_NAME, settings.KEYSTONE_PROJECT_DOMAIN_NAME)
+            settings.KEYSTONE_USER_DOMAIN_NAME, settings.KEYSTONE_PROJECT_DOMAIN_NAME,
+            settings.KEYSTONE_TIMEOUT)
 
     def get_token_data(self):
         """ Get token and data from keystone """
