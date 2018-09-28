@@ -39,11 +39,12 @@ class AuthTest(unittest2.TestCase):
         mock_settings.KEYSTONE_AUTH_URL = 'auth_url'
         mock_settings.KEYSTONE_USER_DOMAIN_NAME = 'user_domain_name'
         mock_settings.KEYSTONE_PROJECT_DOMAIN_NAME = 'project_domain_name'
+        mock_settings.KEYSTONE_TIMEOUT = 3
         Auth().set_credentials('user', 'pass')
 
         mock_keystoneauth.assert_called_once_with(
             'auth_url', 'project_name', 'user', 'pass',
-            'user_domain_name', 'project_domain_name')
+            'user_domain_name', 'project_domain_name', 3)
 
     def test_set_token(self):
 
@@ -94,6 +95,7 @@ class AuthTest(unittest2.TestCase):
 
         auth_inst = Auth()
         auth_inst.cache = Mock()
+        auth_inst.token = 'token123'
         auth_inst.cache.get_cache_token.return_value = 'token_data'
 
         auth_inst.validate_token()
@@ -116,8 +118,15 @@ class AuthTest(unittest2.TestCase):
 
         auth_inst = Auth()
         auth_inst.cache = Mock()
+        auth_inst.token = 'token123'
         auth_inst.cache.get_cache_token.return_value = ''
 
+        with self.assertRaises(exceptions.InvalidToken):
+            auth_inst.validate_token()
+
+    def test_validate_token_without_token(self):
+
+        auth_inst = Auth()
         with self.assertRaises(exceptions.InvalidToken):
             auth_inst.validate_token()
 
