@@ -15,6 +15,7 @@
 """
 import logging
 
+from keystoneauth1.exceptions.auth import AuthorizationFailure
 from keystoneauth1.exceptions.http import NotFound
 from keystoneauth1.exceptions.http import Unauthorized
 from keystoneclient.v3 import client
@@ -74,6 +75,9 @@ class KeystoneAuth(object):
 
         except Unauthorized:
             raise exceptions.Unauthorized('Unauthorized')
+
+        except AuthorizationFailure:
+            raise exceptions.AuthException('Authorization failed')
 
     def validate_token(self, token):
 
