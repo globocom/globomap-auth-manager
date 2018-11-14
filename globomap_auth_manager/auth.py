@@ -55,6 +55,28 @@ class Auth(object):
             token = value
         self.token = token
 
+    def _set_token_data(self):
+        """ Set token_data by Keystone """
+
+        if not self.token:
+            return
+
+        self._set_config_keystone(
+            settings.KEYSTONE_USERNAME, settings.KEYSTONE_PASSWORD)
+
+        token_data = self._keystone_auth.validate_token(self.token)
+
+        if not token_data:
+            return
+
+        self.token_data = token_data
+
+        if self.cache:
+            try:
+                self.cache.set_cache_token(token_data)
+            except CacheException:
+                self.logger.error('Token not setted in cache.')
+
     def _set_config_keystone(self, username, password):
         """ Set config to Keystone """
 
@@ -95,19 +117,15 @@ class Auth(object):
                 token_data = self.cache.get_cache_token(self.token)
             except CacheException:
                 self.logger.error('Token not getted from cache.')
-                token_data = None
+                self._set_token_data()
+                return
             else:
                 if token_data:
                     self.token_data = token_data
                     return
         else:
-            self._set_config_keystone(
-                settings.KEYSTONE_USERNAME, settings.KEYSTONE_PASSWORD)
-            if self.token is not None:
-                token_data = self._keystone_auth.validate_token(self.token)
-                if token_data:
-                    self.token_data = token_data
-                    return
+            self._set_token_data()
+            return
 
         self.logger.error('Invalid Token')
         raise InvalidToken('Invalid Token')
