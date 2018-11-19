@@ -120,10 +120,16 @@ class AuthTest(unittest2.TestCase):
 
     def test_validate_token_with_cache_exception(self):
 
+        mock_keystoneauth = patch(
+            'globomap_auth_manager.auth.KeystoneAuth').start()
+        mock_keystoneauth.return_value.validate_token.return_value = ''
         auth_inst = Auth()
-        auth_inst.cache = Mock()
+        auth_inst._set_config_keystone = Mock()        
+        auth_inst.cache = RedisClient()
+        auth_inst.cache.is_redis_ok = Mock(return_value=False)
+        auth_inst.cache.get_cache_token = Mock(return_value='')
         auth_inst.token = 'token123'
-        auth_inst.cache.get_cache_token.return_value = ''
+        auth_inst._keystone_auth = mock_keystoneauth()
 
         with self.assertRaises(exceptions.InvalidToken):
             auth_inst.validate_token()

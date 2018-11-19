@@ -31,6 +31,7 @@ class Auth(object):
     def __init__(self):
         self.token = None
         self.cache = None
+        self._keystone_auth = None
         self.configure_cache()
 
     def is_url_ok(self):
@@ -67,7 +68,8 @@ class Auth(object):
         token_data = self._keystone_auth.validate_token(self.token)
 
         if not token_data:
-            return
+            self.logger.error('Invalid Token')
+            raise InvalidToken('Invalid Token')
 
         self.token_data = token_data
 
@@ -118,20 +120,13 @@ class Auth(object):
             except CacheException:
                 self.logger.error('Token not getted from cache.')
                 self._set_token_data()
-                return
             else:
                 if token_data:
                     self.token_data = token_data
-                    return
                 else:
                     self._set_token_data()
-                    return
         else:
             self._set_token_data()
-            return
-
-        self.logger.error('Invalid Token')
-        raise InvalidToken('Invalid Token')
 
     def get_token_data_details(self):
         return self.token_data
