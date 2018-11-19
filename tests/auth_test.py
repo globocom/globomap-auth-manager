@@ -20,6 +20,7 @@ import unittest2
 
 from globomap_auth_manager import exceptions
 from globomap_auth_manager.auth import Auth
+from globomap_auth_manager.redis_client import RedisClient
 
 
 class AuthTest(unittest2.TestCase):
@@ -55,7 +56,8 @@ class AuthTest(unittest2.TestCase):
     def test_get_token_data(self):
 
         auth_inst = Auth()
-        auth_inst.cache = None
+        auth_inst.cache = RedisClient()
+        auth_inst.cache.is_redis_ok = Mock(return_value=False)
         auth_inst._keystone_auth = Mock()
         auth_inst._keystone_auth.conn.auth_ref = {
             'expires_at': '2018-04-11T19:17:49.870116Z',
@@ -68,6 +70,7 @@ class AuthTest(unittest2.TestCase):
             'token': 'token'
         }
         auth_inst.token = 'token'
+
         self.assertEqual(data, auth_inst.get_token_data())
 
     def test_get_token_data_with_cache(self):
@@ -104,7 +107,8 @@ class AuthTest(unittest2.TestCase):
     def test_validate_token(self):
 
         auth_inst = Auth()
-        auth_inst.cache = None
+        auth_inst.cache = RedisClient()
+        auth_inst.cache.is_redis_ok = Mock(return_value=False)
         auth_inst.token = 'token123'
         mock_keystoneauth = patch(
             'globomap_auth_manager.auth.KeystoneAuth').start()

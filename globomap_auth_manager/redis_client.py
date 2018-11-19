@@ -116,7 +116,9 @@ class RedisClient(object):
         self.conn.set(token, token_data, ex=ttl.seconds)
 
     def is_redis_ok(self):
-        if self.conn is not None or not self.conn.ping():
+        try:
+            self.conn.ping()
+        except redis.exceptions.ConnectionError:
             self.logger.error('Failed to healthcheck redis.')
             return False
         else:

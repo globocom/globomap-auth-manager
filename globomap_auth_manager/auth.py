@@ -71,7 +71,7 @@ class Auth(object):
 
         self.token_data = token_data
 
-        if self.cache:
+        if self.cache.is_redis_ok():
             try:
                 self.cache.set_cache_token(token_data)
             except CacheException:
@@ -92,7 +92,7 @@ class Auth(object):
         token = token_data['auth_token']
         self.set_token(token)
 
-        if self.cache:
+        if self.cache.is_redis_ok():
             try:
                 self.cache.set_cache_token(token_data)
             except CacheException:
@@ -112,7 +112,7 @@ class Auth(object):
             self.logger.error('Missing Token')
             raise InvalidToken('Missing Token')
 
-        if self.cache:
+        if self.cache.is_redis_ok():
             try:
                 token_data = self.cache.get_cache_token(self.token)
             except CacheException:
@@ -122,6 +122,9 @@ class Auth(object):
             else:
                 if token_data:
                     self.token_data = token_data
+                    return
+                else:
+                    self._set_token_data()
                     return
         else:
             self._set_token_data()
