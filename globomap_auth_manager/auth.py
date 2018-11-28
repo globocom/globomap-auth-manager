@@ -30,6 +30,7 @@ class Auth(object):
 
     def __init__(self):
         self.token = None
+        self.token_data = None
         self.cache = None
         self._keystone_auth = None
         self.configure_cache()

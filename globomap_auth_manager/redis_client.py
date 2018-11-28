@@ -110,7 +110,8 @@ class RedisClient(object):
         ttl = (datetime.utcnow().now() - datetime_object)
         token_data = json.dumps({
             'expires_at': token_expires,
-            'roles': roles
+            'roles': roles,
+            'user': token_data['user']
         })
 
         self.conn.set(token, token_data, ex=ttl.seconds)

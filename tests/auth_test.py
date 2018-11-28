@@ -62,7 +62,9 @@ class AuthTest(unittest2.TestCase):
         auth_inst._keystone_auth.conn.auth_ref = {
             'expires_at': '2018-04-11T19:17:49.870116Z',
             'auth_token': 'token',
-            'roles': [{'name': 'role1', 'id': '123'}]
+            'roles': [{'name': 'role1', 'id': '123'}],
+            'user': {'name': 'test'},
+            'useless': 1
         }
 
         data = {
@@ -81,7 +83,9 @@ class AuthTest(unittest2.TestCase):
         auth_ref = {
             'expires_at': '2018-04-11T19:17:49.870116Z',
             'auth_token': 'token',
-            'roles': [{'name': 'role1', 'id': '123'}]
+            'roles': [{'name': 'role1', 'id': '123'}],
+            'user': {'name': 'test'},
+            'useless': 1
         }
         auth_inst._keystone_auth.conn.auth_ref = auth_ref
 
@@ -124,7 +128,7 @@ class AuthTest(unittest2.TestCase):
             'globomap_auth_manager.auth.KeystoneAuth').start()
         mock_keystoneauth.return_value.validate_token.return_value = ''
         auth_inst = Auth()
-        auth_inst._set_config_keystone = Mock()        
+        auth_inst._set_config_keystone = Mock()
         auth_inst.cache = RedisClient()
         auth_inst.cache.is_redis_ok = Mock(return_value=False)
         auth_inst.cache.get_cache_token = Mock(return_value='')

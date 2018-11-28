@@ -119,11 +119,15 @@ class RedisClientTest(unittest2.TestCase):
         redis_client.set_cache_token({
             'expires_at': '2018-04-11T19:17:49.870116Z',
             'auth_token': 'token',
-            'roles': [{'name': 'role1', 'id': '123'}]
+            'roles': [{'name': 'role1', 'id': '123'}],
+            'user': {'name': 'test'}
         })
 
-        token_data = {'expires_at': '2018-04-11T19:17:49.870116Z',
-                      'roles': [{'name': 'role1', 'id': '123'}]}
+        token_data = {
+            'expires_at': '2018-04-11T19:17:49.870116Z',
+            'roles': [{'name': 'role1', 'id': '123'}],
+            'user': {'name': 'test'}
+        }
 
         redis_client.conn.set.assert_called_once_with(
             'token', json.dumps(token_data), ex=79802)
