@@ -24,7 +24,7 @@ setup(
     author='Ederson Brilhante',
     author_email='ederson.brilhante@corp.globo.com',
     install_requires=[
-        'requests==2.18.4',
+        'requests==2.20.0',
         'python-keystoneclient==3.15.0',
         'redis==2.10.6',
     ],
